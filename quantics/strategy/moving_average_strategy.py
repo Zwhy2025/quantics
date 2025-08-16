@@ -7,7 +7,7 @@
 """
 
 import backtrader as bt
-from quantics.strategy.base_strategy import BaseStrategy
+from .base_strategy import BaseStrategy
 
 
 class MovingAverageCrossStrategy(BaseStrategy):
@@ -58,30 +58,44 @@ class MovingAverageCrossStrategy(BaseStrategy):
         self.crossover = bt.indicators.CrossOver(self.fast_ma, self.slow_ma)
     
     def next(self):
-        # 确保有足够的数据
-        if len(self) < self.params.slow_period:
-            return
+        """
+        策略核心决策函数
         
-        # 如果有未完成的订单，不进行新的交易
+        作用：
+        1. 在每个时间点分析市场数据
+        2. 根据技术指标生成交易信号
+        3. 执行买入或卖出操作
+        
+        执行时机：每个交易日（每个bar）都会调用一次
+        
+        策略逻辑：
+        - 无持仓 + 快线上穿慢线 => 全仓买入
+        - 有持仓 + 快线下穿慢线 => 卖出全部
+        """
+        # 如果有未完成的订单，等待订单执行完成
         if self.order:
             return
         
-        # 获取当前持仓
-        position = self.getposition()
-        
         # 当前无持仓，检查买入信号
-        if not position.size:
-            if self.crossover > 0:  # 快线上穿慢线
+        if not self.position:
+            # 快线上穿慢线，产生买入信号
+            if self.crossover > 0:
+                # 获取当前可用现金
                 cash = self.broker.getcash()
+                # 获取当前收盘价
                 price = self.datas[0].close[0]
-                size = int(cash * 0.95 // price)
+                # 计算可买入的股数（整股）
+                size = int(cash // price)
                 
+                # 确保有足够的资金买入至少1股
                 if size > 0:
-                    self.log(f'买入信号 (fast_ma>slow_ma), 计划买入: {size} 股')
+                    self.log(f'买入信号 (fast_ma>slow_ma), 全仓买入: {size} 股')
+                    # 创建买入订单
                     self.order = self.buy(size=size)
-        
-        # 当前有持仓，检查卖出信号
         else:
-            if self.crossover < 0:  # 快线下穿慢线
-                self.log(f'卖出信号 (fast_ma<slow_ma), 卖出全部: {position.size} 股')
-                self.order = self.sell(size=position.size)
+            # 当前有持仓，检查卖出信号
+            # 快线下穿慢线，产生卖出信号
+            if self.crossover < 0:
+                self.log(f'卖出信号 (fast_ma<slow_ma), 卖出全部: {self.position.size} 股')
+                # 创建卖出订单，卖出全部持仓
+                self.order = self.sell(size=self.position.size)

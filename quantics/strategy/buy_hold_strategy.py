@@ -7,7 +7,7 @@ Buy & Hold策略
 """
 
 import backtrader as bt
-from quantics.strategy.base_strategy import BaseStrategy
+from .base_strategy import BaseStrategy
 
 
 class BuyHoldStrategy(BaseStrategy):
@@ -56,8 +56,8 @@ class BuyHoldStrategy(BaseStrategy):
             cash = self.broker.getcash()
             # 当前收盘价
             price = self.datas[0].close[0]
-            # 计算可买股数（整股），使用99%的资金以避免保证金问题
-            size = int((cash * 0.99) // price)
+            # 计算可买股数（整股）
+            size = int(cash // price)  # 使用整除保证是整数
             
             if size > 0:
                 self.log(f'Buy & Hold策略：全仓买入 {size} 股')
