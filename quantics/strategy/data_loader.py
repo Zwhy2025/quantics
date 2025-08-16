@@ -118,7 +118,16 @@ class DataLoader:
         print(f"索引类型: {type(stock_data.index)}")
         print(f"索引前5个值: {stock_data.index[:5]}")
         print(f"数值列是否都是数值类型: {stock_data.select_dtypes(include=[np.number]).columns.tolist()}")
-        print(f"Volume列是否都是整数: {stock_data['Volume'].dtype}")
+        
+        # 检查Volume列的数据类型
+        if 'Volume' in stock_data.columns:
+            volume_series = stock_data['Volume']
+            if hasattr(volume_series, 'dtype'):
+                print(f"Volume列是否都是整数: {volume_series.dtype}")
+            else:
+                print(f"Volume列数据类型: {type(volume_series)}")
+        else:
+            print("Volume列不存在")
         
         print("\n修复后的数据类型:")
         print(stock_data.dtypes)

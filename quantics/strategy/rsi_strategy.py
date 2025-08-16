@@ -7,7 +7,7 @@ RSI策略
 """
 
 import backtrader as bt
-from .base_strategy import BaseStrategy
+from quantics.strategy.base_strategy import BaseStrategy
 
 
 class RSIStrategy(BaseStrategy):
@@ -63,7 +63,8 @@ class RSIStrategy(BaseStrategy):
         if not self.position:
             if rsi_value < self.params.rsi_low:
                 cash = self.broker.getcash()
-                size = int(cash // price)
+                # 使用99%的资金买入，避免保证金不足的问题
+                size = int((cash * 0.99) // price)
                 if size > 0:
                     self.log(f'买入信号 (RSI<{self.params.rsi_low}), 全仓买入: {size} 股')
                     self.order = self.buy(size=size)

@@ -57,48 +57,51 @@ def main():
         printlog=True
     )
     
+    backtest_utils.plot_results(cerebro, style='candlestick')
+    
+    
     # 4. 策略比较
-    print("\n4. 比较多个策略...")
-    strategy_configs = [
-        ('MA Cross', MovingAverageCrossStrategy, dict(fast_period=20, slow_period=50)),
-        ('RSI', RSIStrategy, dict(rsi_period=14, rsi_low=30, rsi_high=70)),
-        ('Bollinger Bands', BollingerBandsStrategy, dict(period=20, devfactor=2.0)),
-        ('MACD', MACDStrategy, dict(fastperiod=12, slowperiod=26, signalperiod=9)),
-        ('Buy & Hold', BuyHoldStrategy, dict()),
-    ]
+    # print("\n4. 比较多个策略...")
+    # strategy_configs = [
+    #     ('MA Cross', MovingAverageCrossStrategy, dict(fast_period=20, slow_period=50)),
+    #     ('RSI', RSIStrategy, dict(rsi_period=14, rsi_low=30, rsi_high=70)),
+    #     ('Bollinger Bands', BollingerBandsStrategy, dict(period=20, devfactor=2.0)),
+    #     ('MACD', MACDStrategy, dict(fastperiod=12, slowperiod=26, signalperiod=9)),
+    #     ('Buy & Hold', BuyHoldStrategy, dict()),
+    # ]
     
-    performance_df = backtest_utils.compare_strategies(strategy_configs, data_feed)
+    # performance_df = backtest_utils.compare_strategies(strategy_configs, data_feed)
     
-    # 5. 参数优化示例
-    print("\n5. 移动平均线策略参数优化...")
-    param_ranges = {
-        'fast_period': [10, 15, 20, 25],
-        'slow_period': [40, 50, 60, 70]
-    }
+    # # 5. 参数优化示例
+    # print("\n5. 移动平均线策略参数优化...")
+    # param_ranges = {
+    #     'fast_period': [10, 15, 20, 25],
+    #     'slow_period': [40, 50, 60, 70]
+    # }
     
-    optimization_df = backtest_utils.optimize_parameters(
-        MovingAverageCrossStrategy,
-        data_feed,
-        param_ranges,
-        metric='Sharpe Ratio'
-    )
+    # optimization_df = backtest_utils.optimize_parameters(
+    #     MovingAverageCrossStrategy,
+    #     data_feed,
+    #     param_ranges,
+    #     metric='Sharpe Ratio'
+    # )
     
-    # 6. 使用最佳参数运行回测
-    if len(optimization_df) > 0:
-        print("\n6. 使用最佳参数运行回测...")
-        best_params = optimization_df.iloc[0]
+    # # 6. 使用最佳参数运行回测
+    # if len(optimization_df) > 0:
+    #     print("\n6. 使用最佳参数运行回测...")
+    #     best_params = optimization_df.iloc[0]
         
-        cerebro_best, strategy_best, results_best = backtest_utils.run_backtest(
-            MovingAverageCrossStrategy,
-            data_feed,
-            fast_period=int(best_params['fast_period']),
-            slow_period=int(best_params['slow_period']),
-            printlog=True
-        )
+    #     cerebro_best, strategy_best, results_best = backtest_utils.run_backtest(
+    #         MovingAverageCrossStrategy,
+    #         data_feed,
+    #         fast_period=int(best_params['fast_period']),
+    #         slow_period=int(best_params['slow_period']),
+    #         printlog=True
+    #     )
         
-        # 绘制结果
-        print("\n7. 绘制回测结果...")
-        backtest_utils.plot_results(cerebro_best, style='candlestick')
+    #     # 绘制结果
+    #     print("\n7. 绘制回测结果...")
+    #     backtest_utils.plot_results(cerebro_best, style='candlestick')
     
     print("\n=== 演示完成 ===")
 
