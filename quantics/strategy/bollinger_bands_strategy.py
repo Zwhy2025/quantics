@@ -7,7 +7,7 @@
 """
 
 import backtrader as bt
-from .base_strategy import BaseStrategy
+from quantics.strategy.base_strategy import BaseStrategy
 
 
 class BollingerBandsStrategy(BaseStrategy):
@@ -70,7 +70,8 @@ class BollingerBandsStrategy(BaseStrategy):
             # 跌破下轨 => 全仓买入
             if close_price < bot:
                 cash = self.broker.getcash()
-                size = int(cash // close_price)
+                # 使用99%的资金买入，避免保证金不足的问题
+                size = int((cash * 0.99) // close_price)
                 if size > 0:
                     self.log(f'买入信号 (收盘价<下轨), 全仓买入: {size} 股')
                     self.order = self.buy(size=size)
