@@ -119,24 +119,6 @@ class BacktestUtils:
             if total_trades > 0:
                 win_rate = won_trades / total_trades * 100
                 print(f'胜率: {win_rate:.1f}% ({won_trades}/{total_trades})')
-
-                # 增加更详细的交易分析
-                pnl_net_total = trade_analysis.get('pnl', {}).get('net', {}).get('total', 0)
-                pnl_net_average = trade_analysis.get('pnl', {}).get('net', {}).get('average', 0)
-                print(f'总净盈亏: {pnl_net_total:.2f}')
-                print(f'平均每笔交易盈亏: {pnl_net_average:.2f}')
-
-                won_pnl_total = trade_analysis.get('won', {}).get('pnl', {}).get('total', 0)
-                won_pnl_avg = trade_analysis.get('won', {}).get('pnl', {}).get('average', 0)
-                lost_pnl_total = trade_analysis.get('lost', {}).get('pnl', {}).get('total', 0)
-                lost_pnl_avg = trade_analysis.get('lost', {}).get('pnl', {}).get('average', 0)
-
-                if won_trades > 0:
-                    print(f'平均盈利: {won_pnl_avg:.2f}')
-                if lost_trades > 0:
-                    print(f'平均亏损: {lost_pnl_avg:.2f}')
-                    profit_factor = abs(won_pnl_total / lost_pnl_total) if lost_pnl_total != 0 else float('inf')
-                    print(f'盈亏比 (Profit Factor): {profit_factor:.2f}')
     
     def run_strategy_and_get_metrics(self, strategy_class, data_feed, **strategy_params):
         """
@@ -160,8 +142,6 @@ class BacktestUtils:
         cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
         cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
         cerebro.addanalyzer(bt.analyzers.Returns, _name='returns', tann=252)
-        # Add EquityCurveAnalyzer
-        cerebro.addanalyzer(self.create_equity_analyzer(), _name='equity_curve_analyzer')
         
         results = cerebro.run()
         strat = results[0]
@@ -172,17 +152,12 @@ class BacktestUtils:
         annual_return = strat.analyzers.returns.get_analysis().get('rnorm100', None)
         final_value = cerebro.broker.getvalue()
         
-        # Get equity curve data
-        equity_data = strat.analyzers.equity_curve_analyzer.get_analysis()
-        equity_curve = pd.Series(equity_data['equity'], index=pd.to_datetime(equity_data['dates']))
-        
         metrics = {
-            'sharpe_ratio': sharpe,
-            'max_drawdown': drawdown,
-            'annual_return': annual_return,
-            'final_value': final_value,
-            'total_return': (final_value / self.initial_cash - 1) * 100,
-            'equity_curve': equity_curve,
+            'Sharpe Ratio': sharpe,
+            'Max Drawdown (%)': drawdown,
+            'Annual Return (%)': annual_return,
+            'Final Value': final_value,
+            'Total Return (%)': (final_value / self.initial_cash - 1) * 100
         }
         
         return metrics
@@ -201,19 +176,19 @@ class BacktestUtils:
         results_dict = {}
         
         for name, strat_class, params in strategy_configs:
-            print(f"正在测试策略: {name}")
+            print(f"\n正在测试策略: {name}")
             metrics = self.run_strategy_and_get_metrics(strat_class, data_feed, **params)
             results_dict[name] = metrics
         
         performance_df = pd.DataFrame.from_dict(results_dict, orient='index')
-        performance_df = performance_df.sort_values('annual_return', ascending=False)
+        performance_df = performance_df.sort_values('Annual Return (%)', ascending=False)
         
-        print("策略绩效对比：")
+        print("\n策略绩效对比：")
         print(performance_df)
         
         return performance_df
     
-    def optimize_parameters(self, strategy_class, data_feed, param_ranges, metric='sharpe_ratio'):
+    def optimize_parameters(self, strategy_class, data_feed, param_ranges, metric='Sharpe Ratio'):
         """
         参数优化
         
@@ -221,7 +196,7 @@ class BacktestUtils:
         - strategy_class: 策略类
         - data_feed: 数据源
         - param_ranges: 参数范围字典，格式{'param_name': [values]}
-        - metric: 优化指标，默认'sharpe'
+        - metric: 优化指标，默认'Sharpe Ratio'
         
         返回：
         - pandas.DataFrame: 优化结果
@@ -243,15 +218,16 @@ class BacktestUtils:
             
             try:
                 metrics = self.run_strategy_and_get_metrics(strategy_class, data_feed, **params)
+                
                 # 添加参数信息
                 result = {**params, **metrics}
                 optimization_results.append(result)
                 
                 print(f"[{i+1}/{len(param_combinations)}] 参数: {params}")
-                print(f"    夏普比率: {metrics['sharpe_ratio']:.4f}")
-                print(f"    年化收益率: {metrics['annual_return']:.2f}%")
-                print(f"    最大回撤: {metrics['max_drawdown']:.2f}%")
-            
+                print(f"    夏普比率: {metrics['Sharpe Ratio']:.4f}")
+                print(f"    年化收益率: {metrics['Annual Return (%)']:.2f}%")
+                print(f"    最大回撤: {metrics['Max Drawdown (%)']:.2f}%")
+                
             except Exception as e:
                 print(f"[{i+1}/{len(param_combinations)}] 参数 {params} 运行失败: {str(e)}")
         

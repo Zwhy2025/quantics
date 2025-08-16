@@ -41,29 +41,36 @@ class BaseStrategy(bt.Strategy):
             print(f'当前资金: {self.broker.getvalue():.2f}')
     
     def notify_order(self, order):
+        """
+        订单状态通知函数
+        
+        参数：
+        - order: 订单对象，包含订单的详细信息
+        
+        作用：
+        1. 监听订单执行状态
+        2. 处理订单完成、取消、拒绝等情况
+        3. 更新策略内部状态
+        
+        执行时机：每当订单状态发生变化时自动调用
+        """
         # 订单提交或接受状态，等待执行
         if order.status in [order.Submitted, order.Accepted]:
             return
         
-        # 检查订单是否已完成
-        if order.status == order.Completed:
+        # 订单执行完成
+        if order.status in [order.Completed]:
             if order.isbuy():
                 self.log(f'买单执行, 价格: {order.executed.price:.2f}, 股数: {order.executed.size}')
             else:
                 self.log(f'卖单执行, 价格: {order.executed.price:.2f}, 股数: {order.executed.size}')
-            self.order = None  # 重置订单状态
         
-        # 处理订单被拒绝或取消的情况
+        # 订单被取消、保证金不足或被拒绝
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            status_str = {
-                order.Canceled: '已取消',
-                order.Margin: '保证金不足',
-                order.Rejected: '已拒绝'
-            }
-            self.log(f'订单{status_str[order.status]}')
-            if order.status == order.Margin:
-                self.log(f'可用资金: {self.broker.getcash():.2f}')
-            self.order = None  # 重置订单状态
+            self.log('订单取消/拒绝')
+        
+        # 重置订单状态，允许下一次交易
+        self.order = None
     
     def stop(self):
         """

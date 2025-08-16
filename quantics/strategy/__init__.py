@@ -11,14 +11,14 @@
 以及相关的回测工具和数据分析组件。
 """
 
-from quantics.strategy.base_strategy import BaseStrategy
-from quantics.strategy.moving_average_strategy import MovingAverageCrossStrategy
-from quantics.strategy.rsi_strategy import RSIStrategy
-from quantics.strategy.bollinger_bands_strategy import BollingerBandsStrategy
-from quantics.strategy.macd_strategy import MACDStrategy
-from quantics.strategy.buy_hold_strategy import BuyHoldStrategy
-from quantics.strategy.backtest_utils import BacktestUtils
-from quantics.strategy.data_loader import DataLoader
+from .base_strategy import BaseStrategy
+from .moving_average_strategy import MovingAverageCrossStrategy
+from .rsi_strategy import RSIStrategy
+from .bollinger_bands_strategy import BollingerBandsStrategy
+from .macd_strategy import MACDStrategy
+from .buy_hold_strategy import BuyHoldStrategy
+from .backtest_utils import BacktestUtils
+from .data_loader import DataLoader
 
 __all__ = [
     'BaseStrategy',
